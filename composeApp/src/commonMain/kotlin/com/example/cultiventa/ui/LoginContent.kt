@@ -56,16 +56,27 @@ fun LoginContent(
             Spacer(modifier = Modifier.height(60.dp))
 
             Button(
-                onClick = { onGoogleSignIn() },
+                onClick = {
+                    cargando = true
+                    onGoogleSignIn()
+                },
+                enabled = !cargando,
                 modifier = Modifier.fillMaxWidth(0.85f).height(54.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    disabledContainerColor = Color(0xFFF5F5F5)
+                ),
                 border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painter = painterResource(Res.drawable.ic_google), contentDescription = null, modifier = Modifier.size(24.dp), tint = Color.Unspecified)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Iniciar sesión con Google", color = Color(0xFF1F1F1F), fontSize = 16.sp)
+                if (cargando) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color(0xFF2E7D32), strokeWidth = 2.dp)
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(painter = painterResource(Res.drawable.ic_google), contentDescription = null, modifier = Modifier.size(24.dp), tint = Color.Unspecified)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Iniciar sesión con Google", color = Color(0xFF1F1F1F), fontSize = 16.sp)
+                    }
                 }
             }
 
@@ -77,6 +88,7 @@ fun LoginContent(
                     mensajeError = ""
                     mostrarFormularioEmail = true
                 },
+                enabled = !cargando,
                 modifier = Modifier.fillMaxWidth(0.85f).height(54.dp),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Color(0xFF2E7D32))
@@ -112,7 +124,8 @@ fun LoginContent(
                         OutlinedTextField(
                             value = email, onValueChange = { email = it }, label = { Text("Email") },
                             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF2E7D32))
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF2E7D32)),
+                            enabled = !cargando
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -121,7 +134,8 @@ fun LoginContent(
                             value = password, onValueChange = { password = it }, label = { Text("Contraseña") },
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF2E7D32))
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF2E7D32)),
+                            enabled = !cargando
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -132,8 +146,6 @@ fun LoginContent(
                             Button(
                                 onClick = {
                                     mensajeError = ""
-
-                                    // 1. VALIDACIÓN MANUAL ANTES DE LLAMAR A FIREBASE
                                     val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]+$".toRegex()
 
                                     when {
@@ -147,7 +159,6 @@ fun LoginContent(
                                             mensajeError = "La contraseña debe tener al menos 6 caracteres."
                                         }
                                         else -> {
-                                            // 2. SI PASA LAS VALIDACIONES, INTENTAMOS FIREBASE
                                             cargando = true
                                             scope.launch {
                                                 try {
@@ -164,7 +175,7 @@ fun LoginContent(
                                                     mensajeError = when {
                                                         errorMsg.contains("already-in-use") -> "Este email ya está registrado."
                                                         errorMsg.contains("network") -> "Error de red. Revisa tu conexión."
-                                                        else -> "No existe la cuenta. Por favor, regístrate primeramente."
+                                                        else -> "No existe la cuenta o datos incorrectos."
                                                     }
                                                 } finally {
                                                     cargando = false

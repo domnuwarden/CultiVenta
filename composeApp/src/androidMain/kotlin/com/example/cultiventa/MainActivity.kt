@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
                     }
             }
         } catch (e: ApiException) {
-            Log.e("GoogleLogin", "Error de Google: ${e.statusCode}")
+            Log.e("GoogleLogin", "Error de Google: ${e.statusCode} - ${e.message}")
         }
     }
 
@@ -59,7 +59,17 @@ class MainActivity : ComponentActivity() {
             .requestEmail()
             .build()
 
-        val intent = GoogleSignIn.getClient(this, gso).signInIntent
-        googleSignInLauncher.launch(intent)
+        val googleSignInClient = GoogleSignIn.getClient(this, gso)
+        googleSignInClient.signOut().addOnCompleteListener {
+            googleSignInClient.revokeAccess().addOnCompleteListener {
+                val intent = googleSignInClient.signInIntent
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                try {
+                    googleSignInLauncher.launch(intent)
+                } catch (e: Exception) {
+                    Log.e("GoogleLogin", "No se pudo lanzar el selector: ${e.message}")
+                }
+            }
+        }
     }
 }

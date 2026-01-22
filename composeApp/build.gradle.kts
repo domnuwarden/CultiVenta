@@ -43,6 +43,8 @@ kotlin {
             implementation(libs.voyager.tab.navigator)
             implementation(libs.firebase.auth)
             implementation(libs.firebase.firestore)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
