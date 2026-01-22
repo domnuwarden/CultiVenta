@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1044564835494",
+    "project_id": "proyectohuerto25-26",
+    "storage_bucket": "proyectohuerto25-26.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1044564835494:android:56d7567b169169ecd6c867",
+        "android_client_info": {
+          "package_name": "com.example.cultiventa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1044564835494-6ocm00tul86cb7gaoik3ei4dqakfcoa4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.cultiventa",
+            "certificate_hash": "fef9d293e8ff192f54df0c0682e5e42000ffe09f"
+          }
+        },
+        {
+          "client_id": "1044564835494-f3eps4t8u9ff00pbe8ak3bso2nre50ha.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgrcrD61vAIseCtQ1J7DytQhAnSFMBUVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1044564835494-f3eps4t8u9ff00pbe8ak3bso2nre50ha.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
