@@ -29,11 +29,12 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 
 @Composable
 fun LobbyContainer() {
-    TabNavigator(ParcelasTab) {
+    // Se inicializa el navegador con BocetosTab como pestaña principal
+    TabNavigator(BocetosTab) {
         Scaffold(
             bottomBar = {
                 NavigationBar {
-                    TabNavigationItem(ParcelasTab)
+                    TabNavigationItem(BocetosTab)
                     TabNavigationItem(TiendaTab)
                     TabNavigationItem(PerfilTab)
                 }
@@ -57,7 +58,8 @@ fun RowScope.TabNavigationItem(tab: Tab) {
     )
 }
 
-object ParcelasTab : Tab {
+// --- PESTAÑA DE BOCETOS ---
+object BocetosTab : Tab {
     override val options: TabOptions
         @Composable get() = TabOptions(0u, "Bancales", painterResource(Res.drawable.ic_home))
 
@@ -102,7 +104,7 @@ object ParcelasTab : Tab {
 
             Text("Bancales Principales", fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 6.dp))
 
-            // --- 2. REJILLA DE 6 BANCALES (Proporcional) ---
+            // --- 2. REJILLA DE 6 BANCALES ---
             Box(modifier = Modifier.weight(1f)) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
@@ -124,7 +126,7 @@ object ParcelasTab : Tab {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // --- 3. GESTIÓN DE BANCAL (Altura Subida a 320.dp) ---
+            // --- 3. GESTIÓN DE BANCAL ---
             Text(
                 text = if (bancalSeleccionado != null) "Gestión - Bancal #${bancalSeleccionado!! + 1}" else "Selecciona un bancal",
                 fontSize = 14.sp, fontWeight = FontWeight.SemiBold
@@ -133,7 +135,7 @@ object ParcelasTab : Tab {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(320.dp) // <-- ALTURA SUBIDA para que no parezca aplastado
+                    .height(320.dp)
                     .padding(top = 6.dp)
                     .background(Color(0xFFD7CCC8), RoundedCornerShape(12.dp))
                     .border(2.dp, Color(0xFF8D6E63), RoundedCornerShape(12.dp))
@@ -160,6 +162,7 @@ object ParcelasTab : Tab {
     }
 }
 
+// --- COMPONENTES VISUALES ---
 @Composable
 fun ZonaCultivo(idZona: Int, modifier: Modifier = Modifier) {
     Column(
@@ -170,9 +173,7 @@ fun ZonaCultivo(idZona: Int, modifier: Modifier = Modifier) {
             .padding(6.dp)
     ) {
         Text("Zona ${idZona + 1}", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
-
         Spacer(modifier = Modifier.height(4.dp))
-
         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 CuadritoTierra(Modifier.weight(1f))
@@ -209,7 +210,7 @@ fun BancalVisual(id: Int, esSeleccionado: Boolean, tieneSed: Boolean, onClick: (
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1.1f) // <-- Menos aplastado, forma más natural
+            .aspectRatio(1.1f)
             .shadow(if (esSeleccionado) 6.dp else 2.dp, RoundedCornerShape(10.dp))
             .background(Color(0xFF5D4037), RoundedCornerShape(10.dp))
             .border(width = 4.dp, color = borderColor, shape = RoundedCornerShape(10.dp))
@@ -224,6 +225,7 @@ fun BancalVisual(id: Int, esSeleccionado: Boolean, tieneSed: Boolean, onClick: (
     }
 }
 
+// --- TABS RESTANTES ---
 object TiendaTab : Tab {
     override val options: TabOptions @Composable get() = TabOptions(1u, "Tienda", painterResource(Res.drawable.ic_shop))
     @Composable override fun Content() { Box(Modifier.fillMaxSize(), Alignment.Center) { Text("Tienda") } }
