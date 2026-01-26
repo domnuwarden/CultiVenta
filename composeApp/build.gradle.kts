@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.googleServices)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -30,6 +31,8 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.google.auth)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktor.client.android)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -45,6 +48,8 @@ kotlin {
             implementation(libs.firebase.firestore)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

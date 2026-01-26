@@ -17,10 +17,16 @@ firebase-kotlin = "1.13.0"
 voyager = "1.1.0-alpha04"
 google-services = "4.4.2"
 coil = "3.0.4"
+kotlinx-datetime = "0.6.0"
+kotlinx-serialization = "1.7.3"
 
 [libraries]
 # Base
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version = "3.0.1" }
+ktor-client-android = { module = "io.ktor:ktor-client-android", version = "3.0.1" }
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
@@ -54,4 +60,5 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 googleServices = { id = "com.google.gms.google-services", version.ref = "google-services" }

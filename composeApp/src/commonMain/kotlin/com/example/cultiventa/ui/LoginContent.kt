@@ -17,11 +17,30 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.cultiventa.matarAplicacion
 import org.jetbrains.compose.resources.painterResource
 import cultiventa.composeapp.generated.resources.*
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.launch
+
+data class LoginScreen(val onGoogleSignIn: (onSuccess: () -> Unit) -> Unit) : Screen {
+    @Composable
+    override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
+
+        LoginContent(
+            onGoogleSignIn = {
+                onGoogleSignIn {
+                    navigator.replaceAll(MainLobbyScreen)
+                }
+            }
+        )
+    }
+}
 
 @Composable
 fun LoginContent(
@@ -39,7 +58,6 @@ fun LoginContent(
     var mensajeError by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // --- PANTALLA PRINCIPAL ---
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.Center,
@@ -69,7 +87,7 @@ fun LoginContent(
                 border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                if (cargando) {
+                if (cargando && !mostrarFormularioEmail) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color(0xFF2E7D32), strokeWidth = 2.dp)
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -95,9 +113,17 @@ fun LoginContent(
             ) {
                 Text("Iniciar sesión con Email", color = Color(0xFF2E7D32), fontSize = 16.sp)
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            TextButton(
+                onClick = { matarAplicacion() },
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Text("Cerrar Juego", color = Color.Gray, fontWeight = FontWeight.Medium)
+            }
         }
 
-        // --- FORMULARIO SOBREPUESTO ---
         if (mostrarFormularioEmail) {
             Box(
                 modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))
@@ -124,7 +150,6 @@ fun LoginContent(
                         OutlinedTextField(
                             value = email, onValueChange = { email = it }, label = { Text("Email") },
                             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF2E7D32)),
                             enabled = !cargando
                         )
 
@@ -134,7 +159,6 @@ fun LoginContent(
                             value = password, onValueChange = { password = it }, label = { Text("Contraseña") },
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF2E7D32)),
                             enabled = !cargando
                         )
 
@@ -145,42 +169,20 @@ fun LoginContent(
                         } else {
                             Button(
                                 onClick = {
-                                    mensajeError = ""
-                                    val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z]+$".toRegex()
-
-                                    when {
-                                        email.isEmpty() || password.isEmpty() -> {
-                                            mensajeError = "Rellena todos los campos"
-                                        }
-                                        !email.matches(emailPattern) -> {
-                                            mensajeError = "El formato del correo no es válido."
-                                        }
-                                        password.length < 6 -> {
-                                            mensajeError = "La contraseña debe tener al menos 6 caracteres."
-                                        }
-                                        else -> {
-                                            cargando = true
-                                            scope.launch {
-                                                try {
-                                                    if (esModoRegistro) {
-                                                        auth.createUserWithEmailAndPassword(email, password)
-                                                        mensajeError = "¡Registro con éxito! Inicia sesión ahora"
-                                                        esModoRegistro = false
-                                                    } else {
-                                                        auth.signInWithEmailAndPassword(email, password)
-                                                        onGoogleSignIn()
-                                                    }
-                                                } catch (e: Exception) {
-                                                    val errorMsg = e.message?.lowercase() ?: ""
-                                                    mensajeError = when {
-                                                        errorMsg.contains("already-in-use") -> "Este email ya está registrado."
-                                                        errorMsg.contains("network") -> "Error de red. Revisa tu conexión."
-                                                        else -> "No existe la cuenta o datos incorrectos."
-                                                    }
-                                                } finally {
-                                                    cargando = false
-                                                }
+                                    cargando = true
+                                    scope.launch {
+                                        try {
+                                            if (esModoRegistro) {
+                                                auth.createUserWithEmailAndPassword(email, password)
+                                                mensajeError = "¡Registro con éxito!"
+                                                esModoRegistro = false
+                                            } else {
+                                                auth.signInWithEmailAndPassword(email, password)
                                             }
+                                        } catch (e: Exception) {
+                                            mensajeError = "Error en el acceso."
+                                        } finally {
+                                            cargando = false
                                         }
                                     }
                                 },
@@ -191,13 +193,8 @@ fun LoginContent(
                                 Text(if (esModoRegistro) "Crear cuenta" else "Entrar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            TextButton(onClick = {
-                                esModoRegistro = !esModoRegistro
-                                mensajeError = ""
-                            }) {
-                                Text(if (esModoRegistro) "¿Ya tienes cuenta? Inicia sesión" else "¿No tienes cuenta? Regístrate aquí", color = Color(0xFF2E7D32))
+                            TextButton(onClick = { esModoRegistro = !esModoRegistro; mensajeError = "" }) {
+                                Text(if (esModoRegistro) "¿Ya tienes cuenta?" else "¿No tienes cuenta? Regístrate", color = Color(0xFF2E7D32))
                             }
                         }
                     }
