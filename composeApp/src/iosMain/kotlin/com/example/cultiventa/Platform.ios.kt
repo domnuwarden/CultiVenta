@@ -37,8 +37,6 @@ actual fun programarNotificacionLocal(titulo: String, mensaje: String, tiempoMil
                 setBody(mensaje)
                 setSound(UNNotificationSound.defaultSound)
             }
-
-            // Calculamos cuánto tiempo falta desde ahora
             val ahoraMilis = NSDate().timeIntervalSince1970 * 1000
             val segundosDeEspera = (tiempoMilis - ahoraMilis.toLong()) / 1000.0
 

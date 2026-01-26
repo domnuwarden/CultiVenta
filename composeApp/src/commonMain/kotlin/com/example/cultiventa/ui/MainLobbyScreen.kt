@@ -15,8 +15,6 @@ import com.example.cultiventa.cancelarNotificacionesPlanta
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.storage.storage
-import dev.gitlive.firebase.storage.Data
-import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.coroutines.launch
 
 object MainLobbyScreen : Screen {
@@ -53,8 +51,6 @@ object MainLobbyScreen : Screen {
                                     scope.launch {
                                         val ahora = GameData.obtenerTiempoActual()
                                         val tiempoCrecimiento = GameData.obtenerTiempoCrecimiento(semilla)
-
-                                        // 1. Lógica de datos
                                         val nuevoInv = datosUsuario.inventario.toMutableMap()
                                         nuevoInv[semilla] = cantidad - 1
                                         val nuevasPlantas = datosUsuario.plantas_activas.toMutableMap()
@@ -62,41 +58,18 @@ object MainLobbyScreen : Screen {
                                         val nuevosDatos = datosUsuario.copy(inventario = nuevoInv, plantas_activas = nuevasPlantas)
                                         datosUsuario = nuevosDatos
                                         actualizarDatosUsuario(nuevosDatos)
-
-                                        // 2. PROGRAMACIÓN DE NOTIFICACIONES (ID Único por tipo)
-                                        // Cosecha
                                         programarNotificacionLocal(
                                             titulo = "✨ ¡Cosecha lista!",
-                                            mensaje = "Tu $semilla en el bancal ya se puede recoger.",
+                                            mensaje = "Tu $semilla ya se puede recoger.",
                                             tiempoMilis = ahora + tiempoCrecimiento
                                         )
-
-                                        // Sed (al 40% del tiempo)
-                                        if (tiempoCrecimiento > GameData.minuto * 10) {
-                                            programarNotificacionLocal(
-                                                titulo = "💧 Necesita agua",
-                                                mensaje = "Pásate por el huerto, tus plantas tienen sed.",
-                                                tiempoMilis = ahora + (tiempoCrecimiento * 0.4).toLong()
-                                            )
-                                        }
-
-                                        // Plaga (al 70% del tiempo)
-                                        if (tiempoCrecimiento > GameData.minuto * 20) {
-                                            programarNotificacionLocal(
-                                                titulo = "🐛 ¡Peligro de plaga!",
-                                                mensaje = "Se han visto bichos cerca de tu $semilla.",
-                                                tiempoMilis = ahora + (tiempoCrecimiento * 0.7).toLong()
-                                            )
-                                        }
                                     }
                                 }
                             },
                             onQuitarOCosechar = { id ->
+                                cancelarNotificacionesPlanta(id)
                                 val planta = datosUsuario.plantas_activas[id] ?: return@Content
                                 scope.launch {
-                                    // CANCELAR NOTIFICACIONES: Ya no hay planta en este bancal
-                                    cancelarNotificacionesPlanta(id)
-
                                     val ahora = GameData.obtenerTiempoActual()
                                     val tiempoTotal = GameData.obtenerTiempoCrecimiento(planta.nombreSemilla)
                                     val nuevoInv = datosUsuario.inventario.toMutableMap()
@@ -131,12 +104,10 @@ object MainLobbyScreen : Screen {
                                 }
                             },
                             onRegar = { id ->
+                                cancelarNotificacionesPlanta(id)
                                 val p = datosUsuario.plantas_activas[id]
                                 if (p != null && (datosUsuario.inventario["Regadera PRO"] ?: 0) > 0) {
                                     scope.launch {
-                                        // CANCELAR NOTIFICACIONES: Ya hemos regado, quitamos avisos pendientes
-                                        cancelarNotificacionesPlanta(id)
-
                                         val nuevoInv = datosUsuario.inventario.toMutableMap()
                                         nuevoInv["Regadera PRO"] = (nuevoInv["Regadera PRO"] ?: 1) - 1
                                         val nuevasPlantas = datosUsuario.plantas_activas.toMutableMap()
@@ -148,12 +119,10 @@ object MainLobbyScreen : Screen {
                                 }
                             },
                             onCurar = { id ->
+                                cancelarNotificacionesPlanta(id)
                                 val p = datosUsuario.plantas_activas[id]
                                 if (p != null && (datosUsuario.inventario["Antiplagas BIO"] ?: 0) > 0) {
                                     scope.launch {
-                                        // CANCELAR NOTIFICACIONES: Ya hemos curado
-                                        cancelarNotificacionesPlanta(id)
-
                                         val nuevoInv = datosUsuario.inventario.toMutableMap()
                                         nuevoInv["Antiplagas BIO"] = (nuevoInv["Antiplagas BIO"] ?: 1) - 1
                                         val nuevasPlantas = datosUsuario.plantas_activas.toMutableMap()
@@ -257,7 +226,6 @@ object MainLobbyScreen : Screen {
                             },
                             onResetProgreso = {
                                 scope.launch {
-                                    // Cancelar todas las notificaciones al resetear
                                     datosUsuario.plantas_activas.keys.forEach { cancelarNotificacionesPlanta(it) }
                                     val reset = UsuarioDatos()
                                     datosUsuario = reset

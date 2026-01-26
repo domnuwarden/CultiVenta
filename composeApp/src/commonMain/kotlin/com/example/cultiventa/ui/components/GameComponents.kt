@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cultiventa.model.PlantaInstancia
 import com.example.cultiventa.model.GameData
+import com.example.cultiventa.programarNotificacionLocal
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -44,28 +45,33 @@ fun CuadritoTierra(
                 val ahora = GameData.obtenerTiempoActual()
                 val trans = ahora - planta.tiempoPlante
                 val total = GameData.obtenerTiempoCrecimiento(planta.nombreSemilla)
-
-                // COMPROBACIÓN DE MUERTE POR TIEMPO TRANSCURRIDO DESDE EL PELIGRO
                 val muertePlaga = planta.tiempoPlaga?.let { tPlaga -> (ahora - tPlaga) >= (15 * GameData.minuto) } ?: false
                 val muerteSed = planta.tiempoSed?.let { tSed -> (ahora - tSed) >= GameData.hora } ?: false
 
                 if (muertePlaga || muerteSed) {
                     onUpdateSalud(id, planta.copy(estaMuerta = true, tiempoPlaga = null, tiempoSed = null))
-                    break // Detener bucle inmediatamente para esta planta
+                    break
                 }
 
-                // EVENTOS ALEATORIOS (Solo si la planta aún está creciendo)
                 if (trans < total) {
                     val ratio = if(planta.nombreSemilla == "Semillas Lechuga") 5 else 2
                     if (Random.nextInt(1000) < ratio && planta.tiempoSed == null) {
                         onUpdateSalud(id, planta.copy(tiempoSed = ahora))
+                        programarNotificacionLocal(
+                            titulo = "💧 ¿Necesita agua?",
+                            mensaje = "Pásate por el huerto, tu ${planta.nombreSemilla} tiene sed.",
+                            tiempoMilis = ahora + 1000L // 1 segundo de margen para el sistema
+                        )
                     }
                     if (Random.nextInt(2000) < ratio && planta.tiempoPlaga == null) {
                         onUpdateSalud(id, planta.copy(tiempoPlaga = ahora))
+                        programarNotificacionLocal(
+                            titulo = "🐛 ¡Ojo con los bichos!",
+                            mensaje = "Han aparecido plagas en tu ${planta.nombreSemilla}, ¡revisa!",
+                            tiempoMilis = ahora + 1000L
+                        )
                     }
                 }
-
-                // ACTUALIZACIÓN VISUAL
                 fase = when {
                     trans >= total -> "✨"
                     trans > total / 2 -> "🌿"
@@ -76,7 +82,7 @@ fun CuadritoTierra(
                     planta.tiempoSed != null -> "💧"
                     else -> ""
                 }
-                delay(1000) // Revisión constante cada segundo
+                delay(1000)
             }
         } else if (planta?.estaMuerta == true) {
             fase = "🥀"

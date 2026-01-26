@@ -7,7 +7,6 @@ import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import com.example.cultiventa.App
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -79,8 +78,6 @@ class MainActivity : ComponentActivity() {
             .build()
 
         val googleSignInClient = GoogleSignIn.getClient(this, gso)
-
-        // Limpiamos sesión previa para permitir elegir cuenta siempre
         googleSignInClient.signOut().addOnCompleteListener {
             googleSignInClient.revokeAccess().addOnCompleteListener {
                 val intent = googleSignInClient.signInIntent

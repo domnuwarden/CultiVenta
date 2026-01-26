@@ -40,11 +40,10 @@ suspend fun actualizarDatosUsuario(nuevosDatos: UsuarioDatos) {
     val db = Firebase.firestore
     val userId = Firebase.auth.currentUser?.uid ?: return
     try {
-        // .set() creará el documento si no existe
         db.collection("usuarios").document(userId).set(nuevosDatos)
         println("DEBUG: Guardado con éxito en Firestore")
     } catch (e: Exception) {
-        println("ERROR FIRESTORE: ${e.message}") // Esto te dirá si faltan permisos
+        println("ERROR FIRESTORE: ${e.message}")
     }
 }
 
@@ -58,8 +57,6 @@ suspend fun eliminarItemInventario(nombreItem: String) {
         if (snapshot.exists) {
             val datos = snapshot.data<UsuarioDatos>()
             val nuevoInventario = datos.inventario.toMutableMap()
-
-            // Si hay más de 1, restamos. Si hay 1 o menos, eliminamos la clave.
             val cantidadActual = nuevoInventario[nombreItem] ?: 0
             if (cantidadActual > 1) {
                 nuevoInventario[nombreItem] = cantidadActual - 1

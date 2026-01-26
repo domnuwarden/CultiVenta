@@ -27,7 +27,6 @@ actual fun programarNotificacionLocal(titulo: String, mensaje: String, tiempoMil
         val context = AppContext.get()
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // Verificamos si realmente tenemos permiso para alarmas exactas (Android 12+)
         val canScheduleExact = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             alarmManager.canScheduleExactAlarms()
         } else true
@@ -47,7 +46,6 @@ actual fun programarNotificacionLocal(titulo: String, mensaje: String, tiempoMil
         if (canScheduleExact) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, tiempoMilis, pendingIntent)
         } else {
-            // Si no hay permiso, usamos una alarma normal (puede retrasarse unos minutos)
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, tiempoMilis, pendingIntent)
         }
     } catch (e: Exception) {
@@ -59,7 +57,8 @@ actual fun cancelarNotificacionesPlanta(idBancal: String) {
     val context = AppContext.get()
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, NotificationReceiver::class.java)
-    val ids = listOf(idBancal.hashCode(), idBancal.hashCode() + 1, idBancal.hashCode() + 2)
+    val baseId = idBancal.hashCode()
+    val ids = listOf(baseId, baseId + 1, baseId + 2)
 
     ids.forEach { id ->
         val pendingIntent = PendingIntent.getBroadcast(

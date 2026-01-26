@@ -268,8 +268,6 @@ object PerfilTab : Tab {
             Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Diario de Campo", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
                 Spacer(modifier = Modifier.height(40.dp))
-
-                // CAMBIO: Estructura mejorada para el Avatar con el botón "+" sobrepuesto
                 Box(
                     modifier = Modifier.size(110.dp),
                     contentAlignment = Alignment.Center
@@ -295,8 +293,6 @@ object PerfilTab : Tab {
                             Text(email.take(1).uppercase(), fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
                         }
                     }
-
-                    // El botón "+" sobrepuesto estéticamente
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -387,6 +383,23 @@ object PerfilTab : Tab {
                 }
             }
         }
+    }
+}
+object InfoTab : Tab {
+    override val options: TabOptions
+        @Composable
+        get() {
+            val icon = painterResource(Res.drawable.ic_info)
+            return TabOptions(
+                index = 3u,
+                title = "Info",
+                icon = icon
+            )
+        }
+
+    @Composable
+    override fun Content() {
+        InfoScreenContent()
     }
 }
 
