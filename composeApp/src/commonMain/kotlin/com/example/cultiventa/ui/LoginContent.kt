@@ -18,8 +18,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.cultiventa.matarAplicacion
 import org.jetbrains.compose.resources.painterResource
 import cultiventa.composeapp.generated.resources.*
@@ -30,13 +28,9 @@ import kotlinx.coroutines.launch
 data class LoginScreen(val onGoogleSignIn: (onSuccess: () -> Unit) -> Unit) : Screen {
     @Composable
     override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
-
         LoginContent(
             onGoogleSignIn = {
-                onGoogleSignIn {
-                    navigator.replaceAll(MainLobbyScreen)
-                }
+                onGoogleSignIn { }
             }
         )
     }

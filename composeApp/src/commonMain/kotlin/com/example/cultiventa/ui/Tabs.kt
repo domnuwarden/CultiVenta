@@ -1,9 +1,6 @@
 package com.example.cultiventa.ui
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -31,6 +28,10 @@ import kotlinx.coroutines.launch
 import com.example.cultiventa.model.*
 import com.example.cultiventa.ui.components.*
 import coil3.compose.AsyncImage
+import com.example.cultiventa.matarAplicacion
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.core.PickerType
+import io.github.vinceglb.filekit.core.PlatformFile
 
 @Composable
 fun RowScope.TabNavigationItem(tab: Tab) {
@@ -102,11 +103,13 @@ object BocetosTab : Tab {
                     items(6) { index ->
                         val estaDesbloqueado = desbloqueados.contains(index)
                         val bancalTieneSed = plantas.keys.filter { it.startsWith("$index-") }.any { id -> plantas[id]?.tiempoSed != null }
+                        val bancalTienePlaga = plantas.keys.filter { it.startsWith("$index-") }.any { id -> plantas[id]?.tiempoPlaga != null }
 
                         BancalVisual(
                             id = index,
                             esSeleccionado = bancalSeleccionado == index,
                             tieneSed = bancalTieneSed,
+                            tienePlaga = bancalTienePlaga,
                             estaBloqueado = !estaDesbloqueado,
                             onClick = { if (estaDesbloqueado) bancalSeleccionado = index else bancalParaComprar = index }
                         )
@@ -204,11 +207,14 @@ object PerfilTab : Tab {
     fun Content(
         statsReal: List<String>,
         inventario: Map<String, Int>,
+        avatarUrl: String?,
         onModificarDinero: (Int) -> Unit,
         onAddInventario: (String) -> Unit,
-        onAcelerarCultivos: (Long?) -> Unit, // Cambiado para aceptar minutos
-        onForzarPeligro: () -> Unit,
-        onResetProgreso: () -> Unit, // Nueva función
+        onAcelerarCultivos: (Long?) -> Unit,
+        onForzarSed: () -> Unit,
+        onForzarPlaga: () -> Unit,
+        onResetProgreso: () -> Unit,
+        onSubirFoto: (PlatformFile) -> Unit,
         onLogout: () -> Unit
     ) {
         val auth = Firebase.auth
@@ -220,22 +226,35 @@ object PerfilTab : Tab {
         val email = usuarioActual?.email ?: "Usuario"
         var mostrarInfo by remember { mutableStateOf(false) }
         var modoDeveloper by remember { mutableStateOf(false) }
-        var minutosAcelerar by remember { mutableStateOf("") } // Estado para el campo de texto
+        var minutosAcelerar by remember { mutableStateOf("") }
+        var mostrarConfirmReset by remember { mutableStateOf(false) }
+
+        val picker = rememberFilePickerLauncher(type = PickerType.Image) { file ->
+            file?.let { onSubirFoto(it) }
+        }
 
         if (mostrarInfo) {
             AlertDialog(
                 onDismissRequest = { mostrarInfo = false },
                 title = { Text("Información de CultiVenta", fontWeight = FontWeight.Bold) },
-                text = {
-                    Column {
-                        Text("Tu mercado agrícola digital recreativo.", fontWeight = FontWeight.SemiBold, color = Color(0xFF2E7D32))
-                        Spacer(Modifier.height(8.dp))
-                        Text("CultiVenta es un juego de simulación estratégica.")
-                        Spacer(Modifier.height(8.dp))
-                        Text("Soporte: ldrotariu01@gmail.com", fontSize = 12.sp, color = Color.Gray)
-                    }
-                },
+                text = { Column {
+                    Text("Tu mercado agrícola digital recreativo.", fontWeight = FontWeight.SemiBold, color = Color(0xFF2E7D32))
+                    Spacer(Modifier.height(8.dp))
+                    Text("CultiVenta es un juego de simulación estratégica.")
+                    Spacer(Modifier.height(8.dp))
+                    Text("Soporte: ldrotariu01@gmail.com", fontSize = 12.sp, color = Color.Gray)
+                } },
                 confirmButton = { TextButton(onClick = { mostrarInfo = false }) { Text("Cerrar") } }
+            )
+        }
+
+        if (mostrarConfirmReset) {
+            AlertDialog(
+                onDismissRequest = { mostrarConfirmReset = false },
+                title = { Text("¿Resetear progreso?") },
+                text = { Text("Esto borrará todo tu progreso. No se puede deshacer.") },
+                confirmButton = { Button(onClick = { onResetProgreso(); mostrarConfirmReset = false }, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) { Text("RESET") } },
+                dismissButton = { TextButton(onClick = { mostrarConfirmReset = false }) { Text("Cancelar") } }
             )
         }
 
@@ -249,7 +268,49 @@ object PerfilTab : Tab {
             Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Diario de Campo", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
                 Spacer(modifier = Modifier.height(40.dp))
-                Box(modifier = Modifier.size(100.dp).shadow(4.dp, CircleShape).background(Color.White, CircleShape).border(3.dp, Color(0xFF2E7D32), CircleShape), contentAlignment = Alignment.Center) { Text(email.take(1).uppercase(), fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32)) }
+
+                // CAMBIO: Estructura mejorada para el Avatar con el botón "+" sobrepuesto
+                Box(
+                    modifier = Modifier.size(110.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .shadow(4.dp, CircleShape)
+                            .background(Color.White, CircleShape)
+                            .border(3.dp, Color(0xFF2E7D32), CircleShape)
+                            .clip(CircleShape)
+                            .clickable { picker.launch() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (avatarUrl != null) {
+                            AsyncImage(
+                                model = avatarUrl,
+                                contentDescription = "Foto de perfil",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Text(email.take(1).uppercase(), fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                        }
+                    }
+
+                    // El botón "+" sobrepuesto estéticamente
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .offset(x = (-4).dp, y = (-4).dp)
+                            .size(28.dp)
+                            .background(Color(0xFF2E7D32), CircleShape)
+                            .border(2.dp, Color.White, CircleShape)
+                            .clickable { picker.launch() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("+", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
                 Text(email, fontSize = 16.sp, modifier = Modifier.padding(top = 8.dp))
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -259,10 +320,9 @@ object PerfilTab : Tab {
                             Text("Panel Developer", fontWeight = FontWeight.Bold)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = { onModificarDinero(1000) }, modifier = Modifier.weight(1f)) { Text("+1K") }
-                                Button(onClick = onForzarPeligro, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) { Text("💀") }
+                                Button(onClick = onForzarSed, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))) { Text("💧") }
+                                Button(onClick = onForzarPlaga, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))) { Text("🐛") }
                             }
-
-                            // NUEVA FILA: Aceleración personalizada
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedTextField(
                                     value = minutosAcelerar,
@@ -271,18 +331,9 @@ object PerfilTab : Tab {
                                     modifier = Modifier.weight(1f),
                                     singleLine = true
                                 )
-                                Button(onClick = {
-                                    onAcelerarCultivos(minutosAcelerar.toLongOrNull())
-                                    minutosAcelerar = ""
-                                }) { Text("⚡") }
+                                Button(onClick = { onAcelerarCultivos(minutosAcelerar.toLongOrNull()); minutosAcelerar = "" }) { Text("⚡") }
                             }
-
-                            // NUEVO BOTÓN: Reset de progreso
-                            Button(
-                                onClick = onResetProgreso,
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-                            ) {
+                            Button(onClick = { mostrarConfirmReset = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
                                 Text("RESET TOTAL", color = Color.White)
                             }
                         }
@@ -299,28 +350,40 @@ object PerfilTab : Tab {
                         StatRow("Cosechas perdidas", statsReal[3], Color(0xFFD32F2F))
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, Color(0xFFD7CCC8))) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text("Mi Mochila", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Divider(modifier = Modifier.padding(vertical = 12.dp))
-                        if (inventario.isEmpty()) {
-                            Text("No tienes objetos.", fontSize = 14.sp, color = Color.Gray)
-                        } else {
+                        if (inventario.isEmpty()) { Text("Vacía", color = Color.Gray) } else {
                             inventario.forEach { (nombre, cantidad) ->
                                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), Arrangement.SpaceBetween) {
-                                    Text(nombre, fontSize = 14.sp)
-                                    Text("x$cantidad", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                    Text(nombre); Text("x$cantidad", fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(32.dp))
-                Button(onClick = { scope.launch { auth.signOut(); onLogout() } }, modifier = Modifier.fillMaxWidth().height(54.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)), shape = RoundedCornerShape(12.dp)) {
+
+                Button(
+                    onClick = { scope.launch { auth.signOut(); onLogout() } },
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text("Cerrar Sesión", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = { matarAplicacion() },
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    border = BorderStroke(1.dp, Color.Gray),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Cerrar Juego", color = Color.Gray)
                 }
             }
         }
@@ -350,7 +413,7 @@ fun ZonaCultivo(bancalIdx: Int, idZona: Int, inventario: Map<String, Int>, plant
                         if (cant > 0) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                 TextButton(modifier = Modifier.weight(1f), onClick = { if(nombre.contains("Semillas")) onPlantar(cuadritoSel, nombre); mostrarMenuSiembra = false }) { Text("$nombre (x$cant)") }
-                                Text(text = " [Borrar] ", color = Color.Red, fontSize = 12.sp, modifier = Modifier.clickable { onEliminarItem(nombre) })
+                                Text(" [Borrar] ", color = Color.Red, fontSize = 12.sp, modifier = Modifier.clickable { onEliminarItem(nombre) })
                             }
                         }
                     }
@@ -362,22 +425,79 @@ fun ZonaCultivo(bancalIdx: Int, idZona: Int, inventario: Map<String, Int>, plant
 
     if (mostrarMenuGestion) {
         val p = plantas[cuadritoSel]
-        AlertDialog(
-            onDismissRequest = { mostrarMenuGestion = false },
-            title = { Text(if (p?.estaMuerta == true) "Planta Muerta" else "Gestionar") },
-            text = { Column { if (p?.estaMuerta == true) Text("Se ha marchitado.") else { if (p?.tiempoSed != null) Text("⚠️ Necesita agua"); if (p?.tiempoPlaga != null) Text("⚠️ Tiene bichos") } } },
-            confirmButton = {
-                Column {
-                    val ahora = GameData.obtenerTiempoActual()
-                    val total = GameData.obtenerTiempoCrecimiento(p?.nombreSemilla ?: "")
-                    val esMadura = (ahora - (p?.tiempoPlante ?: 0)) >= total
-                    if (p?.estaMuerta == true || esMadura) Button(onClick = { onAccion(cuadritoSel); mostrarMenuGestion = false }) { Text(if(p?.estaMuerta == true) "Limpiar" else "Cosechar") }
-                    if (p?.tiempoSed != null && !p.estaMuerta) Button(onClick = { onRegar(cuadritoSel); mostrarMenuGestion = false }, enabled = (inventario["Regadera PRO"] ?: 0) > 0) { Text("Regar") }
-                    if (p?.tiempoPlaga != null && !p.estaMuerta) Button(onClick = { onCurar(cuadritoSel); mostrarMenuGestion = false }, enabled = (inventario["Antiplagas BIO"] ?: 0) > 0) { Text("Curar") }
+
+        if (p != null) {
+            val ahora = GameData.obtenerTiempoActual()
+            val total = GameData.obtenerTiempoCrecimiento(p.nombreSemilla)
+            val rest = total - (ahora - p.tiempoPlante)
+
+            val textoTiempo = when {
+                p.estaMuerta -> "Estado: Marchita"
+                rest <= 0 -> "Estado: ¡Lista para cosechar! ✨"
+                else -> {
+                    val h = rest / GameData.hora
+                    val m = (rest / 60000) % 60
+                    "Tiempo restante: ${if (h > 0) "${h}h " else ""}${m}m"
                 }
-            },
-            dismissButton = { TextButton(onClick = { onAccion(cuadritoSel); mostrarMenuGestion = false }) { Text("Quitar") } }
-        )
+            }
+
+            AlertDialog(
+                onDismissRequest = { mostrarMenuGestion = false },
+                title = { Text(p.nombreSemilla, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        Text(
+                            text = textoTiempo,
+                            fontSize = 18.sp,
+                            color = if (rest <= 0) Color(0xFF2E7D32) else Color.DarkGray,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        if (!p.estaMuerta) {
+                            if (p.tiempoSed != null) Text("⚠️ Necesita agua urgente", color = Color(0xFF2196F3))
+                            if (p.tiempoPlaga != null) Text("⚠️ Tiene una plaga de bichos", color = Color(0xFFFF9800))
+                        }
+                    }
+                },
+                confirmButton = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val esMadura = (ahora - p.tiempoPlante) >= total
+
+                        if (p.estaMuerta || esMadura) {
+                            Button(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = { onAccion(cuadritoSel); mostrarMenuGestion = false }
+                            ) {
+                                Text(if (p.estaMuerta) "Limpiar terreno" else "Cosechar ahora")
+                            }
+                        }
+
+                        if (p.tiempoSed != null && !p.estaMuerta) {
+                            Button(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = { onRegar(cuadritoSel); mostrarMenuGestion = false },
+                                enabled = (inventario["Regadera PRO"] ?: 0) > 0
+                            ) { Text("Regar (Usa 1 Regadera)") }
+                        }
+
+                        if (p.tiempoPlaga != null && !p.estaMuerta) {
+                            Button(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = { onCurar(cuadritoSel); mostrarMenuGestion = false },
+                                enabled = (inventario["Antiplagas BIO"] ?: 0) > 0
+                            ) { Text("Curar (Usa 1 Antiplagas)") }
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { onAccion(cuadritoSel); mostrarMenuGestion = false }) {
+                        Text("Quitar planta", color = Color.Red)
+                    }
+                }
+            )
+        }
     }
 
     Column(modifier = modifier.fillMaxSize().background(Color(0xFF3E2723).copy(alpha = 0.1f), RoundedCornerShape(8.dp)).padding(4.dp)) {

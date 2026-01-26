@@ -11,6 +11,7 @@ data class UsuarioDatos(
     val dinero_ganado: Int = 0,
     val cosechas_logradas: Int = 0,
     val cosechas_perdidas: Int = 0,
+    val avatarUrl: String? = null,
     val inventario: Map<String, Int> = emptyMap(),
     val bancales_desbloqueados: List<Int> = listOf(0, 1),
     val plantas_activas: Map<String, PlantaInstancia> = emptyMap()

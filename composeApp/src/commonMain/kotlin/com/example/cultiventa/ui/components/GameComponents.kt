@@ -30,32 +30,43 @@ fun CuadritoTierra(
 ) {
     var fase by remember { mutableStateOf("") }
     var alert by remember { mutableStateOf("") }
-    var crono by remember { mutableStateOf("") }
+
+    val transition = rememberInfiniteTransition()
+    val alphaAnim by transition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse)
+    )
 
     LaunchedEffect(planta, id) {
-        if (planta != null) {
+        if (planta != null && !planta.estaMuerta) {
             while (true) {
                 val ahora = GameData.obtenerTiempoActual()
                 val trans = ahora - planta.tiempoPlante
                 val total = GameData.obtenerTiempoCrecimiento(planta.nombreSemilla)
-                val rest = total - trans
 
-                if (!planta.estaMuerta) {
-                    if (planta.tiempoSed != null && ahora - planta.tiempoSed > GameData.hora) {
-                        onUpdateSalud(id, planta.copy(estaMuerta = true))
+                // COMPROBACIÓN DE MUERTE POR TIEMPO TRANSCURRIDO DESDE EL PELIGRO
+                val muertePlaga = planta.tiempoPlaga?.let { tPlaga -> (ahora - tPlaga) >= (15 * GameData.minuto) } ?: false
+                val muerteSed = planta.tiempoSed?.let { tSed -> (ahora - tSed) >= GameData.hora } ?: false
+
+                if (muertePlaga || muerteSed) {
+                    onUpdateSalud(id, planta.copy(estaMuerta = true, tiempoPlaga = null, tiempoSed = null))
+                    break // Detener bucle inmediatamente para esta planta
+                }
+
+                // EVENTOS ALEATORIOS (Solo si la planta aún está creciendo)
+                if (trans < total) {
+                    val ratio = if(planta.nombreSemilla == "Semillas Lechuga") 5 else 2
+                    if (Random.nextInt(1000) < ratio && planta.tiempoSed == null) {
+                        onUpdateSalud(id, planta.copy(tiempoSed = ahora))
                     }
-                    if (planta.tiempoPlaga != null && ahora - planta.tiempoPlaga > 15 * GameData.minuto) {
-                        onUpdateSalud(id, planta.copy(estaMuerta = true))
-                    }
-                    if (trans < total) {
-                        val ratio = if(planta.nombreSemilla == "Semillas Lechuga") 5 else 2
-                        if (Random.nextInt(1000) < ratio && planta.tiempoSed == null) onUpdateSalud(id, planta.copy(tiempoSed = ahora))
-                        if (Random.nextInt(2000) < ratio && planta.tiempoPlaga == null) onUpdateSalud(id, planta.copy(tiempoPlaga = ahora))
+                    if (Random.nextInt(2000) < ratio && planta.tiempoPlaga == null) {
+                        onUpdateSalud(id, planta.copy(tiempoPlaga = ahora))
                     }
                 }
 
+                // ACTUALIZACIÓN VISUAL
                 fase = when {
-                    planta.estaMuerta -> "🥀"
                     trans >= total -> "✨"
                     trans > total / 2 -> "🌿"
                     else -> "🌱"
@@ -65,23 +76,40 @@ fun CuadritoTierra(
                     planta.tiempoSed != null -> "💧"
                     else -> ""
                 }
-                crono = if (rest > 0 && !planta.estaMuerta) {
-                    if(rest > GameData.hora) "${rest/GameData.hora}h" else "${(rest/60000)%60}m"
-                } else ""
-                delay(2000)
+                delay(1000) // Revisión constante cada segundo
             }
-        } else { fase = ""; alert = ""; crono = "" }
+        } else if (planta?.estaMuerta == true) {
+            fase = "🥀"
+            alert = ""
+        } else {
+            fase = ""
+            alert = ""
+        }
+    }
+
+    val colorAlerta = when {
+        planta?.tiempoPlaga != null && !planta.estaMuerta -> Color(0xFFFF9800)
+        planta?.tiempoSed != null && !planta.estaMuerta -> Color(0xFF2196F3)
+        else -> Color.White.copy(alpha = 0.1f)
     }
 
     Box(
-        modifier = modifier.fillMaxSize().background(Color(0xFF3E2723).copy(alpha = 0.6f), RoundedCornerShape(4.dp))
-            .border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(4.dp)).clickable { onClick() },
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF3E2723).copy(alpha = 0.6f), RoundedCornerShape(4.dp))
+            .border(
+                width = if (alert.isNotEmpty() && planta?.estaMuerta == false) 2.dp else 0.5.dp,
+                color = if (alert.isNotEmpty() && planta?.estaMuerta == false) colorAlerta.copy(alpha = alphaAnim) else colorAlerta,
+                shape = RoundedCornerShape(4.dp)
+            )
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(fase, fontSize = 16.sp)
-            if (alert.isNotEmpty() && planta?.estaMuerta == false) Text(alert, fontSize = 12.sp)
-            if (crono.isNotEmpty()) Text(crono, fontSize = 7.sp, color = Color.White.copy(alpha = 0.7f))
+            Text(fase, fontSize = 24.sp)
+            if (alert.isNotEmpty() && planta?.estaMuerta == false) {
+                Text(alert, fontSize = 14.sp)
+            }
         }
     }
 }
@@ -91,6 +119,7 @@ fun BancalVisual(
     id: Int,
     esSeleccionado: Boolean,
     tieneSed: Boolean,
+    tienePlaga: Boolean,
     estaBloqueado: Boolean = false,
     onClick: () -> Unit
 ) {
@@ -99,14 +128,19 @@ fun BancalVisual(
         initialValue = if (esSeleccionado) Color(0xFF4CAF50) else Color(0xFF8D6E63),
         targetValue = when {
             estaBloqueado -> Color.DarkGray
+            tienePlaga -> Color(0xFFFF9800)
             tieneSed -> Color(0xFF2196F3)
             esSeleccionado -> Color(0xFF8BC34A)
             else -> Color(0xFF8D6E63)
         },
         animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
     )
+
     Box(
-        modifier = Modifier.fillMaxWidth().aspectRatio(1.1f).shadow(2.dp, RoundedCornerShape(10.dp))
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1.1f)
+            .shadow(2.dp, RoundedCornerShape(10.dp))
             .background(if (estaBloqueado) Color.Gray.copy(alpha = 0.6f) else Color(0xFF5D4037), RoundedCornerShape(10.dp))
             .border(4.dp, borderColor, RoundedCornerShape(10.dp))
             .clickable { onClick() },

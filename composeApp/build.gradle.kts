@@ -45,11 +45,13 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.tab.navigator)
             implementation(libs.firebase.auth)
+            implementation(libs.firebase.storage)
             implementation(libs.firebase.firestore)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.filekit.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -2,6 +2,8 @@ package com.example.cultiventa
 
 import android.os.Bundle
 import android.util.Log
+import android.content.Context
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,6 +13,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+
+object AppContext {
+    private var instance: Context? = null
+    fun set(context: Context) {
+        instance = context.applicationContext
+    }
+    fun get(): Context = instance ?: error("Context no inicializado")
+}
 
 class MainActivity : ComponentActivity() {
     private var onLoginSuccessAction: (() -> Unit)? = null
@@ -31,7 +41,7 @@ class MainActivity : ComponentActivity() {
                             Log.d("GoogleLogin", "Usuario registrado en Firebase")
                             onLoginSuccessAction?.invoke()
                         } else {
-                            Log.e("GoogleLogin", "Fallo al registrar en Firebase", taskAuth.exception)
+                            Log.e("GoogleLogin", "Error Firebase: ", taskAuth.exception)
                         }
                     }
             }
@@ -42,6 +52,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) {}.launch(
+                android.Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
+
+        AppContext.set(applicationContext)
+
         setContent {
             App(
                 onGoogleSignIn = { onSuccess ->
@@ -60,6 +79,8 @@ class MainActivity : ComponentActivity() {
             .build()
 
         val googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        // Limpiamos sesión previa para permitir elegir cuenta siempre
         googleSignInClient.signOut().addOnCompleteListener {
             googleSignInClient.revokeAccess().addOnCompleteListener {
                 val intent = googleSignInClient.signInIntent
