@@ -1,0 +1,72 @@
+<resources>
+    <string name="tab_bancales">Plots</string>
+    <string name="tab_tienda">Shop</string>
+    <string name="tab_perfil">Profile</string>
+    <string name="tab_info">Info</string>
+
+    <string name="header_mi_huerto">My Orchard</string>
+    <string name="header_terrenos">🌿 Plots: %1$d / 6</string>
+    <string name="label_mis_bancales">My Plots</string>
+    <string name="label_gestion_bancal">Plot Management #%1$d</string>
+    <string name="hint_toca_terreno">Touch an unlocked plot</string>
+    <string name="dialog_expandir_titulo">Expand Orchard</string>
+    <string name="dialog_expandir_cuerpo">Clearing this land costs 💰 %1$d.</string>
+
+    <string name="header_tienda">Traveling Market</string>
+    <string name="btn_comprar">Buy</string>
+
+    <string name="header_perfil">Field Journal</string>
+    <string name="label_usuario">User</string>
+    <string name="stats_titulo">Orchard Statistics</string>
+    <string name="stat_bancales">Plots in use</string>
+    <string name="stat_dinero">Money earned</string>
+    <string name="stat_cosechas_ok">Successful harvests</string>
+    <string name="stat_cosechas_ko">Lost harvests</string>
+    <string name="mochila_titulo">My Backpack</string>
+    <string name="mochila_vacia">Empty</string>
+    <string name="dialog_reset_titulo">Reset progress?</string>
+    <string name="dialog_reset_cuerpo">This will erase all your progress. It cannot be undone.</string>
+
+    <string name="info_game_name">🌿 CultiVenta</string>
+    <string name="info_subtitle">Your Multiplatform Digital Farm</string>
+    <string name="info_que_es_titulo">What is CultiVenta?</string>
+    <string name="info_que_es_cuerpo">Welcome to your own pocket farm! CultiVenta is a game designed for you to relax managing your crops. Unlock plots and amass a vegetable fortune!</string>
+    <string name="info_tech_titulo">Technology</string>
+    <string name="info_tech_cuerpo">Developed with Kotlin Multiplatform and Firebase for real-time data persistence.</string>
+    <string name="info_detalles_titulo">Application Details</string>
+    <string name="info_version">Version</string>
+    <string name="info_dev">Developer</string>
+    <string name="info_update">Update</string>
+    <string name="info_footer">Thanks for farming with us!</string>
+
+    <string name="btn_desbloquear">Unlock</string>
+    <string name="btn_cancelar">Cancel</string>
+    <string name="btn_logout">Logout</string>
+    <string name="btn_close_game">Close Game</string>
+    <string name="btn_cerrar">Close</string>
+    <string name="btn_borrar"> [Delete] </string>
+    <string name="label_inventario">Inventory</string>
+
+    <string name="estado_marchita">Status: Wilted</string>
+    <string name="estado_cosechar">Status: Ready to harvest! ✨</string>
+    <string name="estado_tiempo_restante">Time remaining: %1$s%2$dm</string>
+    <string name="aviso_agua">⚠️ Urgent watering needed</string>
+    <string name="aviso_plaga">⚠️ Has a pest infestation</string>
+    <string name="btn_limpiar">Clear land</string>
+    <string name="btn_cosechar">Harvest now</string>
+    <string name="btn_regar">Water (Use 1 Water Can)</string>
+    <string name="btn_curar">Heal (Use 1 Pest Control)</string>
+    <string name="btn_quitar">Remove plant</string>
+
+    <string name="login_subtitle">Your digital agricultural market</string>
+    <string name="login_btn_google">Sign in with Google</string>
+    <string name="login_btn_email">Sign in with Email</string>
+    <string name="login_form_register_title">Create your account</string>
+    <string name="login_form_login_title">Welcome back</string>
+    <string name="label_email">Email</string>
+    <string name="label_password">Password</string>
+    <string name="login_btn_create_acc">Create account</string>
+    <string name="login_btn_enter">Enter</string>
+    <string name="login_switch_register">Don't have an account? Sign up</string>
+    <string name="login_switch_login">Already have an account?</string>
+</resources>

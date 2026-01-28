@@ -17,10 +17,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.painterResource
-import cultiventa.composeapp.generated.resources.*
 import cafe.adriel.voyager.navigator.tab.*
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
@@ -29,9 +29,13 @@ import com.example.cultiventa.model.*
 import com.example.cultiventa.ui.components.*
 import coil3.compose.AsyncImage
 import com.example.cultiventa.matarAplicacion
+import cultiventa.composeapp.generated.resources.Res
+import cultiventa.composeapp.generated.resources.*
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PlatformFile
+import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.text.intl.Locale
 
 @Composable
 fun RowScope.TabNavigationItem(tab: Tab) {
@@ -39,7 +43,7 @@ fun RowScope.TabNavigationItem(tab: Tab) {
     NavigationBarItem(
         selected = tabNavigator.current == tab,
         onClick = { tabNavigator.current = tab },
-        icon = { Icon(tab.options.icon!!, contentDescription = tab.options.title) },
+        icon = { Icon(painter = tab.options.icon!!, contentDescription = tab.options.title) },
         label = { Text(tab.options.title) },
         colors = NavigationBarItemDefaults.colors(
             selectedIconColor = Color(0xFF2E7D32),
@@ -48,10 +52,15 @@ fun RowScope.TabNavigationItem(tab: Tab) {
         )
     )
 }
+@Composable
+fun obtenerNombreSegunIdioma(nombres: Map<String, String>): String {
+    val idiomaSistema = Locale.current.language
+    return nombres[idiomaSistema] ?: nombres["es"] ?: "Unknown Item"
+}
 
 object BocetosTab : Tab {
     override val options: TabOptions
-        @Composable get() = TabOptions(0u, "Bancales", painterResource(Res.drawable.ic_home))
+        @Composable get() = TabOptions(0u, stringResource(Res.string.tab_bancales), painterResource(Res.drawable.ic_home))
 
     @Composable override fun Content() {}
 
@@ -76,12 +85,14 @@ object BocetosTab : Tab {
         if (bancalParaComprar != null) {
             AlertDialog(
                 onDismissRequest = { bancalParaComprar = null },
-                title = { Text("Expandir Huerto") },
-                text = { Text("Limpiar este terreno cuesta 💰 $costeActual.") },
+                title = { Text(stringResource(Res.string.dialog_expandir_titulo)) },
+                text = { Text(stringResource(Res.string.dialog_expandir_cuerpo, costeActual)) },
                 confirmButton = {
-                    Button(onClick = { onDesbloquear(bancalParaComprar!!, costeActual); bancalParaComprar = null }, enabled = dinero >= costeActual) { Text("Desbloquear") }
+                    Button(onClick = { onDesbloquear(bancalParaComprar!!, costeActual); bancalParaComprar = null }, enabled = dinero >= costeActual) {
+                        Text(stringResource(Res.string.btn_desbloquear))
+                    }
                 },
-                dismissButton = { TextButton(onClick = { bancalParaComprar = null }) { Text("Cancelar") } }
+                dismissButton = { TextButton(onClick = { bancalParaComprar = null }) { Text(stringResource(Res.string.btn_cancelar)) } }
             )
         }
 
@@ -89,15 +100,15 @@ object BocetosTab : Tab {
             Card(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(4.dp), shape = RoundedCornerShape(16.dp)) {
                 Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Mi Huerto", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
-                        Text("🌿 Terrenos: ${desbloqueados.size} / 6", fontSize = 12.sp, color = Color.Gray)
+                        Text(stringResource(Res.string.header_mi_huerto), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                        Text(stringResource(Res.string.header_terrenos, desbloqueados.size), fontSize = 12.sp, color = Color.Gray)
                     }
                     Surface(color = Color(0xFFFFF8E1), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, Color(0xFFFFC107))) {
                         Text("💰 $dinero", modifier = Modifier.padding(10.dp, 4.dp), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFFBF360C))
                     }
                 }
             }
-            Text("Mis Bancales", fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 6.dp))
+            Text(stringResource(Res.string.label_mis_bancales), fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 6.dp))
             Box(modifier = Modifier.weight(0.4f)) {
                 LazyVerticalGrid(columns = GridCells.Fixed(3), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(6) { index ->
@@ -120,7 +131,7 @@ object BocetosTab : Tab {
             Box(modifier = Modifier.fillMaxWidth().weight(0.6f).background(Color(0xFFD7CCC8), RoundedCornerShape(12.dp)).border(2.dp, Color(0xFF8D6E63), RoundedCornerShape(12.dp)).padding(10.dp)) {
                 if (bancalSeleccionado != null) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Gestión Bancal #${bancalSeleccionado!! + 1}", fontWeight = FontWeight.Bold, color = Color(0xFF3E2723))
+                        Text(stringResource(Res.string.label_gestion_bancal, bancalSeleccionado!! + 1), fontWeight = FontWeight.Bold, color = Color(0xFF3E2723))
                         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             ZonaCultivo(bancalSeleccionado!!, 0, inventario, plantas, onPlantar, onQuitarOCosechar, onRegar, onCurar, onUpdateSalud, onEliminarItem, Modifier.weight(1f))
                             ZonaCultivo(bancalSeleccionado!!, 1, inventario, plantas, onPlantar, onQuitarOCosechar, onRegar, onCurar, onUpdateSalud, onEliminarItem, Modifier.weight(1f))
@@ -130,7 +141,7 @@ object BocetosTab : Tab {
                             ZonaCultivo(bancalSeleccionado!!, 3, inventario, plantas, onPlantar, onQuitarOCosechar, onRegar, onCurar, onUpdateSalud, onEliminarItem, Modifier.weight(1f))
                         }
                     }
-                } else { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Toca un terreno desbloqueado", color = Color(0xFF795548)) } }
+                } else { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(Res.string.hint_toca_terreno), color = Color(0xFF795548)) } }
             }
         }
     }
@@ -138,60 +149,58 @@ object BocetosTab : Tab {
 
 object TiendaTab : Tab {
     override val options: TabOptions
-        @Composable get() = TabOptions(1u, "Tienda", painterResource(Res.drawable.ic_shop))
+        @Composable get() = TabOptions(1u, stringResource(Res.string.tab_tienda), painterResource(Res.drawable.ic_shop))
 
     @Composable override fun Content() {}
 
     @Composable
-    fun Content(dinero: Int, onCompra: (Int, String) -> Unit) {
-        val listaProductos = listOf(
-            ProductoItem("Semillas Tomate", 50), ProductoItem("Semillas Lechuga", 30),
-            ProductoItem("Semillas Berenjena", 120), ProductoItem("Semillas Zanahoria", 450),
-            ProductoItem("Semillas Pimiento", 90), ProductoItem("Semillas Calabacin", 40),
-            ProductoItem("Regadera PRO", 200), ProductoItem("Antiplagas BIO", 180)
-        )
+    fun Content(dinero: Int, listaProductos: List<ProductoItem>, onCompra: (Int, String) -> Unit) {
         Column(modifier = Modifier.fillMaxSize().background(Color(0xFFFDF5E6)).padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Mercado Ambulante", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
+                Text(stringResource(Res.string.header_tienda), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
                 Surface(color = Color(0xFFFFF8E1), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, Color(0xFFFFC107)), shadowElevation = 2.dp) {
                     Text("💰 $dinero", modifier = Modifier.padding(10.dp, 4.dp), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFFBF360C))
                 }
             }
             LazyVerticalGrid(columns = GridCells.Fixed(2), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(listaProductos.size) { index ->
-                    CardProducto(listaProductos[index], onCompra = { onCompra(listaProductos[index].precio, listaProductos[index].nombre) })
+                    val producto = listaProductos[index]
+                    val nombreInterno = producto.nombre["es"] ?: ""
+                    CardProducto(producto, onCompra = { onCompra(producto.precio, nombreInterno) })
                 }
             }
         }
     }
 }
 
-data class ProductoItem(val nombre: String, val precio: Int)
+data class ProductoItem(val nombre: Map<String, String>, val precio: Int)
 
 @Composable
 fun CardProducto(producto: ProductoItem, onCompra: () -> Unit) {
     val bucket = "proyectohuerto25-26.firebasestorage.app"
+    val nombreTraducido = obtenerNombreSegunIdioma(producto.nombre)
+    val nombreBaseImagen = producto.nombre["es"] ?: ""
     val (carpeta, prefijo) = when {
-        producto.nombre.contains("Semillas") -> "ImgSemillas" to "Bolsa"
+        nombreBaseImagen.contains("Semillas") -> "ImgSemillas" to "Bolsa"
         else -> "ImgUtilidades" to ""
     }
-    val nombreLimpio = producto.nombre.replace(" ", "").replace("PRO", "Pro").replace("BIO", "Bio")
+    val nombreLimpio = nombreBaseImagen.replace(" ", "").replace("PRO", "Pro").replace("BIO", "Bio")
     val nombreArchivo = "${prefijo}${nombreLimpio}.jpg"
     val imageUrl = "https://firebasestorage.googleapis.com/v0/b/$bucket/o/$carpeta%2F$nombreArchivo?alt=media"
 
     Card(modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(12.dp)), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFEFEBE9)), contentAlignment = Alignment.Center) {
-                AsyncImage(model = imageUrl, contentDescription = producto.nombre, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                AsyncImage(model = imageUrl, contentDescription = nombreTraducido, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             }
             Spacer(modifier = Modifier.height(10.dp))
-            Text(text = producto.nombre, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E2723), maxLines = 1)
+            Text(text = nombreTraducido, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E2723), maxLines = 1)
             Row(modifier = Modifier.background(Color(0xFFFFF8E1), RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 4.dp)) {
                 Text("💰 ${producto.precio}", fontSize = 13.sp, fontWeight = FontWeight.Black, color = Color(0xFFBF360C))
             }
             Spacer(modifier = Modifier.height(10.dp))
             Button(onClick = onCompra, modifier = Modifier.fillMaxWidth().height(36.dp), contentPadding = PaddingValues(0.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)), shape = RoundedCornerShape(8.dp)) {
-                Text("Comprar")
+                Text(stringResource(Res.string.btn_comprar))
             }
         }
     }
@@ -199,7 +208,7 @@ fun CardProducto(producto: ProductoItem, onCompra: () -> Unit) {
 
 object PerfilTab : Tab {
     override val options: TabOptions
-        @Composable get() = TabOptions(2u, "Perfil", painterResource(Res.drawable.ic_profile))
+        @Composable get() = TabOptions(2u, stringResource(Res.string.tab_perfil), painterResource(Res.drawable.ic_profile))
 
     @Composable override fun Content() {}
 
@@ -223,8 +232,7 @@ object PerfilTab : Tab {
         val developersAutorizados = setOf("L2qDDOMGjrZ4CBjuF1khlZyzGzt1")
         val esMiUsuario = developersAutorizados.contains(usuarioActual?.uid)
 
-        val email = usuarioActual?.email ?: "Usuario"
-        var mostrarInfo by remember { mutableStateOf(false) }
+        val email = usuarioActual?.email ?: stringResource(Res.string.label_usuario)
         var modoDeveloper by remember { mutableStateOf(false) }
         var minutosAcelerar by remember { mutableStateOf("") }
         var mostrarConfirmReset by remember { mutableStateOf(false) }
@@ -233,76 +241,33 @@ object PerfilTab : Tab {
             file?.let { onSubirFoto(it) }
         }
 
-        if (mostrarInfo) {
-            AlertDialog(
-                onDismissRequest = { mostrarInfo = false },
-                title = { Text("Información de CultiVenta", fontWeight = FontWeight.Bold) },
-                text = { Column {
-                    Text("Tu mercado agrícola digital recreativo.", fontWeight = FontWeight.SemiBold, color = Color(0xFF2E7D32))
-                    Spacer(Modifier.height(8.dp))
-                    Text("CultiVenta es un juego de simulación estratégica.")
-                    Spacer(Modifier.height(8.dp))
-                    Text("Soporte: ldrotariu01@gmail.com", fontSize = 12.sp, color = Color.Gray)
-                } },
-                confirmButton = { TextButton(onClick = { mostrarInfo = false }) { Text("Cerrar") } }
-            )
-        }
-
         if (mostrarConfirmReset) {
             AlertDialog(
                 onDismissRequest = { mostrarConfirmReset = false },
-                title = { Text("¿Resetear progreso?") },
-                text = { Text("Esto borrará todo tu progreso. No se puede deshacer.") },
+                title = { Text(stringResource(Res.string.dialog_reset_titulo)) },
+                text = { Text(stringResource(Res.string.dialog_reset_cuerpo)) },
                 confirmButton = { Button(onClick = { onResetProgreso(); mostrarConfirmReset = false }, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) { Text("RESET") } },
-                dismissButton = { TextButton(onClick = { mostrarConfirmReset = false }) { Text("Cancelar") } }
+                dismissButton = { TextButton(onClick = { mostrarConfirmReset = false }) { Text(stringResource(Res.string.btn_cancelar)) } }
             )
         }
 
         Box(modifier = Modifier.fillMaxSize().background(Color(0xFFFDF5E6))) {
-            Box(modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).size(30.dp).clip(CircleShape).background(Color.White).border(2.dp, Color(0xFF5D4037), CircleShape).clickable { mostrarInfo = true }, contentAlignment = Alignment.Center) { Text("?", color = Color(0xFF5D4037), fontWeight = FontWeight.ExtraBold) }
-
             if (esMiUsuario) {
                 Box(modifier = Modifier.align(Alignment.TopStart).padding(16.dp).size(30.dp).clip(CircleShape).background(if(modoDeveloper) Color(0xFFD4AF37) else Color.White).border(1.dp, Color.LightGray, CircleShape).clickable { modoDeveloper = !modoDeveloper }, contentAlignment = Alignment.Center) { Text("D") }
             }
 
             Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Diario de Campo", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
+                Text(stringResource(Res.string.header_perfil), fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
                 Spacer(modifier = Modifier.height(40.dp))
-                Box(
-                    modifier = Modifier.size(110.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .shadow(4.dp, CircleShape)
-                            .background(Color.White, CircleShape)
-                            .border(3.dp, Color(0xFF2E7D32), CircleShape)
-                            .clip(CircleShape)
-                            .clickable { picker.launch() },
-                        contentAlignment = Alignment.Center
-                    ) {
+                Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.size(100.dp).shadow(4.dp, CircleShape).background(Color.White, CircleShape).border(3.dp, Color(0xFF2E7D32), CircleShape).clip(CircleShape).clickable { picker.launch() }, contentAlignment = Alignment.Center) {
                         if (avatarUrl != null) {
-                            AsyncImage(
-                                model = avatarUrl,
-                                contentDescription = "Foto de perfil",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+                            AsyncImage(model = avatarUrl, contentDescription = "Avatar", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                         } else {
                             Text(email.take(1).uppercase(), fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
                         }
                     }
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .offset(x = (-4).dp, y = (-4).dp)
-                            .size(28.dp)
-                            .background(Color(0xFF2E7D32), CircleShape)
-                            .border(2.dp, Color.White, CircleShape)
-                            .clickable { picker.launch() },
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.align(Alignment.BottomEnd).offset(x = (-4).dp, y = (-4).dp).size(28.dp).background(Color(0xFF2E7D32), CircleShape).border(2.dp, Color.White, CircleShape).clickable { picker.launch() }, contentAlignment = Alignment.Center) {
                         Text("+", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -320,38 +285,30 @@ object PerfilTab : Tab {
                                 Button(onClick = onForzarPlaga, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))) { Text("🐛") }
                             }
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedTextField(
-                                    value = minutosAcelerar,
-                                    onValueChange = { if (it.all { char -> char.isDigit() }) minutosAcelerar = it },
-                                    label = { Text("Mins") },
-                                    modifier = Modifier.weight(1f),
-                                    singleLine = true
-                                )
+                                OutlinedTextField(value = minutosAcelerar, onValueChange = { if (it.all { char -> char.isDigit() }) minutosAcelerar = it }, label = { Text("Mins") }, modifier = Modifier.weight(1f), singleLine = true)
                                 Button(onClick = { onAcelerarCultivos(minutosAcelerar.toLongOrNull()); minutosAcelerar = "" }) { Text("⚡") }
                             }
-                            Button(onClick = { mostrarConfirmReset = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
-                                Text("RESET TOTAL", color = Color.White)
-                            }
+                            Button(onClick = { mostrarConfirmReset = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) { Text("RESET TOTAL", color = Color.White) }
                         }
                     }
                 }
 
                 Card(modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, Color(0xFFD7CCC8))) {
                     Column(modifier = Modifier.padding(20.dp)) {
-                        Text("Estadísticas del Huerto", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Divider(modifier = Modifier.padding(vertical = 12.dp))
-                        StatRow("Bancales en uso", statsReal[0], Color(0xFF2E7D32))
-                        StatRow("Dinero ganado", statsReal[1], Color(0xFFBF360C))
-                        StatRow("Cosechas logradas", statsReal[2], Color(0xFF4CAF50))
-                        StatRow("Cosechas perdidas", statsReal[3], Color(0xFFD32F2F))
+                        Text(stringResource(Res.string.stats_titulo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+                        StatRow(stringResource(Res.string.stat_bancales), statsReal[0], Color(0xFF2E7D32))
+                        StatRow(stringResource(Res.string.stat_dinero), statsReal[1], Color(0xFFBF360C))
+                        StatRow(stringResource(Res.string.stat_cosechas_ok), statsReal[2], Color(0xFF4CAF50))
+                        StatRow(stringResource(Res.string.stat_cosechas_ko), statsReal[3], Color(0xFFD32F2F))
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, Color(0xFFD7CCC8))) {
                     Column(modifier = Modifier.padding(20.dp)) {
-                        Text("Mi Mochila", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Divider(modifier = Modifier.padding(vertical = 12.dp))
-                        if (inventario.isEmpty()) { Text("Vacía", color = Color.Gray) } else {
+                        Text(stringResource(Res.string.mochila_titulo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+                        if (inventario.isEmpty()) { Text(stringResource(Res.string.mochila_vacia), color = Color.Gray) } else {
                             inventario.forEach { (nombre, cantidad) ->
                                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), Arrangement.SpaceBetween) {
                                     Text(nombre); Text("x$cantidad", fontWeight = FontWeight.Bold)
@@ -362,51 +319,74 @@ object PerfilTab : Tab {
                 }
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Button(
-                    onClick = { scope.launch { auth.signOut(); onLogout() } },
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Cerrar Sesión", color = Color.White, fontWeight = FontWeight.Bold)
+                Button(onClick = { scope.launch { auth.signOut(); onLogout() } }, modifier = Modifier.fillMaxWidth().height(54.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)), shape = RoundedCornerShape(12.dp)) {
+                    Text(stringResource(Res.string.btn_logout), color = Color.White, fontWeight = FontWeight.Bold)
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedButton(
-                    onClick = { matarAplicacion() },
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    border = BorderStroke(1.dp, Color.Gray),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Cerrar Juego", color = Color.Gray)
+                OutlinedButton(onClick = { matarAplicacion() }, modifier = Modifier.fillMaxWidth().height(54.dp), border = BorderStroke(1.dp, Color.Gray), shape = RoundedCornerShape(12.dp)) {
+                    Text(stringResource(Res.string.btn_close_game), color = Color.Gray)
                 }
             }
         }
     }
 }
+
 object InfoTab : Tab {
     override val options: TabOptions
-        @Composable
-        get() {
-            val icon = painterResource(Res.drawable.ic_info)
-            return TabOptions(
-                index = 3u,
-                title = "Info",
-                icon = icon
-            )
-        }
+        @Composable get() = TabOptions(3u, stringResource(Res.string.tab_info), painterResource(Res.drawable.ic_info))
 
-    @Composable
-    override fun Content() {
-        InfoScreenContent()
-    }
+    @Composable override fun Content() { InfoScreenContent() }
 }
 
 @Composable
 fun StatRow(label: String, value: String, valueColor: Color) {
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(label, fontSize = 14.sp, color = Color.Gray); Text(value, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = valueColor)
+    }
+}
+
+@Composable
+fun InfoScreenContent() {
+    val scrollState = rememberScrollState()
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF1F8E9)).verticalScroll(scrollState).padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(stringResource(Res.string.info_game_name), fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+        Text(stringResource(Res.string.info_subtitle), fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 24.dp))
+        InfoCardItem(stringResource(Res.string.info_que_es_titulo), stringResource(Res.string.info_que_es_cuerpo))
+        Spacer(Modifier.height(16.dp))
+        InfoCardItem(stringResource(Res.string.info_tech_titulo), stringResource(Res.string.info_tech_cuerpo))
+        Spacer(Modifier.height(16.dp))
+        Card(modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(stringResource(Res.string.info_detalles_titulo), fontWeight = FontWeight.Bold, color = Color(0xFF388E3C), fontSize = 16.sp)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), thickness = 0.5.dp, color = Color.LightGray)
+                DetailRowInfo(stringResource(Res.string.info_version), "1.0.0")
+                DetailRowInfo(stringResource(Res.string.info_dev), "R. Liviu Dumitru")
+                DetailRowInfo(stringResource(Res.string.info_update), "Enero 2026")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Soporte: ldrotariu01@gmail.com", fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            }
+        }
+        Spacer(Modifier.height(32.dp))
+        Text(stringResource(Res.string.info_footer), fontSize = 12.sp, color = Color(0xFF81C784), textAlign = TextAlign.Center)
+    }
+}
+
+@Composable
+fun InfoCardItem(title: String, content: String) {
+    Card(modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(16.dp)), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF388E3C))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(content, fontSize = 14.sp, color = Color.DarkGray, lineHeight = 20.sp)
+        }
+    }
+}
+
+@Composable
+fun DetailRowInfo(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, color = Color.Gray, fontSize = 14.sp)
+        Text(value, fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 14.sp)
     }
 }
 
@@ -419,94 +399,70 @@ fun ZonaCultivo(bancalIdx: Int, idZona: Int, inventario: Map<String, Int>, plant
     if (mostrarMenuSiembra) {
         AlertDialog(
             onDismissRequest = { mostrarMenuSiembra = false },
-            title = { Text("Inventario") },
+            title = { Text(stringResource(Res.string.label_inventario)) },
             text = {
                 Column {
                     inventario.forEach { (nombre, cant) ->
                         if (cant > 0) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                 TextButton(modifier = Modifier.weight(1f), onClick = { if(nombre.contains("Semillas")) onPlantar(cuadritoSel, nombre); mostrarMenuSiembra = false }) { Text("$nombre (x$cant)") }
-                                Text(" [Borrar] ", color = Color.Red, fontSize = 12.sp, modifier = Modifier.clickable { onEliminarItem(nombre) })
+                                Text(stringResource(Res.string.btn_borrar), color = Color.Red, fontSize = 12.sp, modifier = Modifier.clickable { onEliminarItem(nombre) })
                             }
                         }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { mostrarMenuSiembra = false }) { Text("Cerrar") } }
+            confirmButton = { TextButton(onClick = { mostrarMenuSiembra = false }) { Text(stringResource(Res.string.btn_cerrar)) } }
         )
     }
 
     if (mostrarMenuGestion) {
         val p = plantas[cuadritoSel]
-
         if (p != null) {
             val ahora = GameData.obtenerTiempoActual()
             val total = GameData.obtenerTiempoCrecimiento(p.nombreSemilla)
             val rest = total - (ahora - p.tiempoPlante)
-
             val textoTiempo = when {
-                p.estaMuerta -> "Estado: Marchita"
-                rest <= 0 -> "Estado: ¡Lista para cosechar! ✨"
+                p.estaMuerta -> stringResource(Res.string.estado_marchita)
+                rest <= 0 -> stringResource(Res.string.estado_cosechar)
                 else -> {
                     val h = rest / GameData.hora
                     val m = (rest / 60000) % 60
-                    "Tiempo restante: ${if (h > 0) "${h}h " else ""}${m}m"
+                    stringResource(Res.string.estado_tiempo_restante, if (h > 0) "${h}h " else "", m)
                 }
             }
-
             AlertDialog(
                 onDismissRequest = { mostrarMenuGestion = false },
                 title = { Text(p.nombreSemilla, fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
-                        Text(
-                            text = textoTiempo,
-                            fontSize = 18.sp,
-                            color = if (rest <= 0) Color(0xFF2E7D32) else Color.DarkGray,
-                            fontWeight = FontWeight.Medium
-                        )
-
+                        Text(textoTiempo, fontSize = 18.sp, color = if (rest <= 0) Color(0xFF2E7D32) else Color.DarkGray, fontWeight = FontWeight.Medium)
                         Spacer(Modifier.height(8.dp))
-
                         if (!p.estaMuerta) {
-                            if (p.tiempoSed != null) Text("⚠️ Necesita agua urgente", color = Color(0xFF2196F3))
-                            if (p.tiempoPlaga != null) Text("⚠️ Tiene una plaga de bichos", color = Color(0xFFFF9800))
+                            if (p.tiempoSed != null) Text(stringResource(Res.string.aviso_agua), color = Color(0xFF2196F3))
+                            if (p.tiempoPlaga != null) Text(stringResource(Res.string.aviso_plaga), color = Color(0xFFFF9800))
                         }
                     }
                 },
                 confirmButton = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         val esMadura = (ahora - p.tiempoPlante) >= total
-
                         if (p.estaMuerta || esMadura) {
-                            Button(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = { onAccion(cuadritoSel); mostrarMenuGestion = false }
-                            ) {
-                                Text(if (p.estaMuerta) "Limpiar terreno" else "Cosechar ahora")
+                            Button(modifier = Modifier.fillMaxWidth(), onClick = { onAccion(cuadritoSel); mostrarMenuGestion = false }) {
+                                Text(if (p.estaMuerta) stringResource(Res.string.btn_limpiar) else stringResource(Res.string.btn_cosechar))
                             }
                         }
-
                         if (p.tiempoSed != null && !p.estaMuerta) {
-                            Button(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = { onRegar(cuadritoSel); mostrarMenuGestion = false },
-                                enabled = (inventario["Regadera PRO"] ?: 0) > 0
-                            ) { Text("Regar (Usa 1 Regadera)") }
+                            Button(modifier = Modifier.fillMaxWidth(), onClick = { onRegar(cuadritoSel); mostrarMenuGestion = false }, enabled = (inventario["Regadera PRO"] ?: 0) > 0) { Text(stringResource(Res.string.btn_regar)) }
                         }
-
                         if (p.tiempoPlaga != null && !p.estaMuerta) {
-                            Button(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = { onCurar(cuadritoSel); mostrarMenuGestion = false },
-                                enabled = (inventario["Antiplagas BIO"] ?: 0) > 0
-                            ) { Text("Curar (Usa 1 Antiplagas)") }
+                            Button(modifier = Modifier.fillMaxWidth(), onClick = { onCurar(cuadritoSel); mostrarMenuGestion = false }, enabled = (inventario["Antiplagas BIO"] ?: 0) > 0) { Text(stringResource(Res.string.btn_curar)) }
                         }
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { onAccion(cuadritoSel); mostrarMenuGestion = false }) {
-                        Text("Quitar planta", color = Color.Red)
+                        Text(stringResource(Res.string.btn_quitar), color = Color.Red)
                     }
                 }
             )

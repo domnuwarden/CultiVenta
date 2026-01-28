@@ -15,6 +15,7 @@ import com.example.cultiventa.cancelarNotificacionesPlanta
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.storage.storage
+import dev.gitlive.firebase.firestore.firestore // Asegúrate de tener este import
 import kotlinx.coroutines.launch
 
 object MainLobbyScreen : Screen {
@@ -22,10 +23,34 @@ object MainLobbyScreen : Screen {
     override fun Content() {
         val scope = rememberCoroutineScope()
         var datosUsuario by remember { mutableStateOf(UsuarioDatos()) }
+        var listaProductosTienda by remember { mutableStateOf<List<ProductoItem>>(emptyList()) }
 
         LaunchedEffect(Unit) {
             val cargados = cargarDatosUsuario()
             datosUsuario = cargados
+
+            try {
+                val snapshotSemillas = Firebase.firestore.collection("semillas").get()
+                val listaSemillas = snapshotSemillas.documents.mapNotNull { doc ->
+                    try {
+                        val nombres = doc.get<Map<String, String>>("nombres") ?: return@mapNotNull null
+                        val precio = doc.get<Long>("precio")?.toInt() ?: 0
+                        ProductoItem(nombre = nombres, precio = precio)
+                    } catch (e: Exception) { null }
+                }
+                val snapshotUtilidades = Firebase.firestore.collection("utilidades").get()
+                val listaUtilidades = snapshotUtilidades.documents.mapNotNull { doc ->
+                    try {
+                        val nombres = doc.get<Map<String, String>>("nombres") ?: return@mapNotNull null
+                        val precio = doc.get<Long>("precio")?.toInt() ?: 0
+                        ProductoItem(nombre = nombres, precio = precio)
+                    } catch (e: Exception) { null }
+                }
+                listaProductosTienda = listaSemillas + listaUtilidades
+
+            } catch (e: Exception) {
+                println("ERROR CARGANDO TIENDA: ${e.message}")
+            }
         }
 
         TabNavigator(BocetosTab) { tabNavigator ->
@@ -35,6 +60,7 @@ object MainLobbyScreen : Screen {
                         TabNavigationItem(BocetosTab)
                         TabNavigationItem(TiendaTab)
                         TabNavigationItem(PerfilTab)
+                        TabNavigationItem(InfoTab)
                     }
                 }
             ) { padding ->
@@ -166,6 +192,7 @@ object MainLobbyScreen : Screen {
 
                         is TiendaTab -> currentTab.Content(
                             dinero = datosUsuario.monedas,
+                            listaProductos = listaProductosTienda, // CORRECCIÓN: Pasamos la lista de Firebase
                             onCompra = { precio, nombre ->
                                 if (datosUsuario.monedas >= precio) {
                                     scope.launch {
@@ -251,6 +278,7 @@ object MainLobbyScreen : Screen {
                             },
                             onLogout = { scope.launch { Firebase.auth.signOut() } }
                         )
+                        is InfoTab -> currentTab.Content()
                     }
                 }
             }

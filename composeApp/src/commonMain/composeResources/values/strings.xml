@@ -1,0 +1,72 @@
+<resources>
+    <string name="tab_bancales">Bancales</string>
+    <string name="tab_tienda">Tienda</string>
+    <string name="tab_perfil">Perfil</string>
+    <string name="tab_info">Info</string>
+
+    <string name="header_mi_huerto">Mi Huerto</string>
+    <string name="header_terrenos">🌿 Terrenos: %1$d / 6</string>
+    <string name="label_mis_bancales">Mis Bancales</string>
+    <string name="label_gestion_bancal">Gestión Bancal #%1$d</string>
+    <string name="hint_toca_terreno">Toca un terreno desbloqueado</string>
+    <string name="dialog_expandir_titulo">Expandir Huerto</string>
+    <string name="dialog_expandir_cuerpo">Limpiar este terreno cuesta 💰 %1$d.</string>
+
+    <string name="header_tienda">Mercado Ambulante</string>
+    <string name="btn_comprar">Comprar</string>
+
+    <string name="header_perfil">Diario de Campo</string>
+    <string name="label_usuario">Usuario</string>
+    <string name="stats_titulo">Estadísticas del Huerto</string>
+    <string name="stat_bancales">Bancales en uso</string>
+    <string name="stat_dinero">Dinero ganado</string>
+    <string name="stat_cosechas_ok">Cosechas logradas</string>
+    <string name="stat_cosechas_ko">Cosechas perdidas</string>
+    <string name="mochila_titulo">Mi Mochila</string>
+    <string name="mochila_vacia">Vacía</string>
+    <string name="dialog_reset_titulo">¿Resetear progreso?</string>
+    <string name="dialog_reset_cuerpo">Esto borrará todo tu progreso. No se puede deshacer.</string>
+
+    <string name="info_game_name">🌿 CultiVenta</string>
+    <string name="info_subtitle">Tu Granja Digital Multiplataforma</string>
+    <string name="info_que_es_titulo">¿Qué es CultiVenta?</string>
+    <string name="info_que_es_cuerpo">¡Bienvenido a tu propia granja de bolsillo! CultiVenta es un juego diseñado para que te relajes gestionando tus cultivos. ¡Desbloquea terrenos y amasa una fortuna vegetal!</string>
+    <string name="info_tech_titulo">Tecnología</string>
+    <string name="info_tech_cuerpo">Desarrollada con Kotlin Multiplatform y Firebase para la persistencia de datos.</string>
+    <string name="info_detalles_titulo">Detalles de la Aplicación</string>
+    <string name="info_version">Versión</string>
+    <string name="info_dev">Desarrollador</string>
+    <string name="info_update">Actualización</string>
+    <string name="info_footer">¡Gracias por cultivar con nosotros!</string>
+
+    <string name="btn_desbloquear">Desbloquear</string>
+    <string name="btn_cancelar">Cancelar</string>
+    <string name="btn_logout">Cerrar Sesión</string>
+    <string name="btn_close_game">Cerrar Juego</string>
+    <string name="btn_cerrar">Cerrar</string>
+    <string name="btn_borrar"> [Borrar] </string>
+    <string name="label_inventario">Inventario</string>
+
+    <string name="estado_marchita">Estado: Marchita</string>
+    <string name="estado_cosechar">Estado: ¡Lista para cosechar! ✨</string>
+    <string name="estado_tiempo_restante">Tiempo restante: %1$s%2$dm</string>
+    <string name="aviso_agua">⚠️ Necesita agua urgente</string>
+    <string name="aviso_plaga">⚠️ Tiene una plaga de bichos</string>
+    <string name="btn_limpiar">Limpiar terreno</string>
+    <string name="btn_cosechar">Cosechar ahora</string>
+    <string name="btn_regar">Regar (Usa 1 Regadera)</string>
+    <string name="btn_curar">Curar (Usa 1 Antiplagas)</string>
+    <string name="btn_quitar">Quitar planta</string>
+
+    <string name="login_subtitle">Tu mercado agrícola digital</string>
+    <string name="login_btn_google">Iniciar sesión con Google</string>
+    <string name="login_btn_email">Iniciar sesión con Email</string>
+    <string name="login_form_register_title">Crea tu cuenta</string>
+    <string name="login_form_login_title">Bienvenido de nuevo</string>
+    <string name="label_email">Email</string>
+    <string name="label_password">Contraseña</string>
+    <string name="login_btn_create_acc">Crear cuenta</string>
+    <string name="login_btn_enter">Entrar</string>
+    <string name="login_switch_register">¿No tienes cuenta? Regístrate</string>
+    <string name="login_switch_login">¿Ya tienes cuenta?</string>
+</resources>
