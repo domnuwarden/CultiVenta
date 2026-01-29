@@ -12,7 +12,7 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 
 @Composable
-fun App(onGoogleSignIn: (onSuccess: () -> Unit) -> Unit) {
+fun App(onGoogleSignIn: (onSuccess: () -> Unit, onFinished: () -> Unit) -> Unit) {
     val auth = Firebase.auth
 
     setSingletonImageLoaderFactory { context ->

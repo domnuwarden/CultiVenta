@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CultiVenta</string>
+    <string name="notif_channel_name">Crop Alerts</string>
+    <string name="notif_channel_desc">Plant growth notifications</string>
+    <string name="notif_cosecha_lista">Your harvest is ready!</string>
+    <string name="notif_cosecha_desc">Come in to collect your products.</string>
+</resources>

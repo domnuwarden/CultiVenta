@@ -32,8 +32,8 @@ actual fun programarNotificacionLocal(titulo: String, mensaje: String, tiempoMil
         } else true
 
         val intent = Intent(context, NotificationReceiver::class.java).apply {
-            putExtra("titulo", titulo)
-            putExtra("mensaje", mensaje)
+            putExtra("titulo_res_id", R.string.notif_cosecha_lista)
+            putExtra("mensaje_res_id", R.string.notif_cosecha_desc)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(

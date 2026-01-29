@@ -24,13 +24,14 @@ import cultiventa.composeapp.generated.resources.*
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
-data class LoginScreen(val onGoogleSignIn: (onSuccess: () -> Unit) -> Unit) : Screen {
+data class LoginScreen(val onGoogleSignIn: (onSuccess: () -> Unit, onFinished: () -> Unit) -> Unit) : Screen {
     @Composable
     override fun Content() {
         LoginContent(
-            onGoogleSignIn = {
-                onGoogleSignIn { }
+            onGoogleSignIn = { onSuccess, onFinished ->
+                onGoogleSignIn(onSuccess, onFinished)
             }
         )
     }
@@ -38,7 +39,7 @@ data class LoginScreen(val onGoogleSignIn: (onSuccess: () -> Unit) -> Unit) : Sc
 
 @Composable
 fun LoginContent(
-    onGoogleSignIn: () -> Unit
+    onGoogleSignIn: (onSuccess: () -> Unit, onFinished: () -> Unit) -> Unit
 ) {
     val auth = Firebase.auth
     val scope = rememberCoroutineScope()
@@ -64,13 +65,21 @@ fun LoginContent(
                 }
             )
 
-            Text("Tu mercado agrícola digital", style = MaterialTheme.typography.bodyMedium, color = Color.Gray.copy(alpha = 0.8f))
+            Text(stringResource(Res.string.login_subtitle), style = MaterialTheme.typography.bodyMedium, color = Color.Gray.copy(alpha = 0.8f))
             Spacer(modifier = Modifier.height(60.dp))
 
             Button(
                 onClick = {
                     cargando = true
-                    onGoogleSignIn()
+                    mensajeError = ""
+                    onGoogleSignIn(
+                        {
+                            /* Manejado por Navigator */
+                        },
+                        {
+                            cargando = false
+                        }
+                    )
                 },
                 enabled = !cargando,
                 modifier = Modifier.fillMaxWidth(0.85f).height(54.dp),
@@ -87,7 +96,7 @@ fun LoginContent(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(painter = painterResource(Res.drawable.ic_google), contentDescription = null, modifier = Modifier.size(24.dp), tint = Color.Unspecified)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Iniciar sesión con Google", color = Color(0xFF1F1F1F), fontSize = 16.sp)
+                        Text(stringResource(Res.string.login_btn_google), color = Color(0xFF1F1F1F), fontSize = 16.sp)
                     }
                 }
             }
@@ -105,7 +114,7 @@ fun LoginContent(
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Color(0xFF2E7D32))
             ) {
-                Text("Iniciar sesión con Email", color = Color(0xFF2E7D32), fontSize = 16.sp)
+                Text(stringResource(Res.string.login_btn_email), color = Color(0xFF2E7D32), fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -114,7 +123,7 @@ fun LoginContent(
                 onClick = { matarAplicacion() },
                 modifier = Modifier.padding(bottom = 16.dp)
             ) {
-                Text("Cerrar Juego", color = Color.Gray, fontWeight = FontWeight.Medium)
+                Text(stringResource(Res.string.btn_close_game), color = Color.Gray, fontWeight = FontWeight.Medium)
             }
         }
 
@@ -133,7 +142,11 @@ fun LoginContent(
                         Box(Modifier.width(40.dp).height(4.dp).background(Color.LightGray, RoundedCornerShape(2.dp)))
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        Text(if (esModoRegistro) "Crea tu cuenta" else "Bienvenido de nuevo", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = if (esModoRegistro) stringResource(Res.string.login_form_register_title) else stringResource(Res.string.login_form_login_title),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
 
                         if (mensajeError.isNotEmpty()) {
                             Text(text = mensajeError, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp), fontWeight = FontWeight.Medium)
@@ -142,7 +155,8 @@ fun LoginContent(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         OutlinedTextField(
-                            value = email, onValueChange = { email = it }, label = { Text("Email") },
+                            value = email, onValueChange = { email = it },
+                            label = { Text(stringResource(Res.string.label_email)) }, // TRADUCCIÓN
                             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
                             enabled = !cargando
                         )
@@ -150,7 +164,8 @@ fun LoginContent(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
-                            value = password, onValueChange = { password = it }, label = { Text("Contraseña") },
+                            value = password, onValueChange = { password = it },
+                            label = { Text(stringResource(Res.string.label_password)) }, // TRADUCCIÓN
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
                             enabled = !cargando
@@ -184,11 +199,18 @@ fun LoginContent(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
                             ) {
-                                Text(if (esModoRegistro) "Crear cuenta" else "Entrar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = if (esModoRegistro) stringResource(Res.string.login_btn_create_acc) else stringResource(Res.string.login_btn_enter),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
 
                             TextButton(onClick = { esModoRegistro = !esModoRegistro; mensajeError = "" }) {
-                                Text(if (esModoRegistro) "¿Ya tienes cuenta?" else "¿No tienes cuenta? Regístrate", color = Color(0xFF2E7D32))
+                                Text(
+                                    text = if (esModoRegistro) stringResource(Res.string.login_switch_login) else stringResource(Res.string.login_switch_register),
+                                    color = Color(0xFF2E7D32)
+                                )
                             }
                         }
                     }

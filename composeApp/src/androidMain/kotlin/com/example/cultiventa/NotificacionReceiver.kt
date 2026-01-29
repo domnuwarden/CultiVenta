@@ -11,24 +11,27 @@ import kotlin.time.Clock
 
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val titulo = intent.getStringExtra("titulo") ?: "¡Tu cosecha está lista!"
-        val mensaje = intent.getStringExtra("mensaje") ?: "Entra a recolectar tus productos."
-        val channelId = "cultiventa_alerts"
+        val tituloResId = intent.getIntExtra("titulo_res_id", R.string.notif_cosecha_lista)
+        val mensajeResId = intent.getIntExtra("mensaje_res_id", R.string.notif_cosecha_desc)
+        val titulo = context.getString(tituloResId)
+        val mensaje = context.getString(mensajeResId)
 
+        val channelId = "cultiventa_alerts"
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                channelId, "Alertas de Cultivo",
+                channelId,
+                context.getString(R.string.notif_channel_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notificaciones de crecimiento de plantas"
+                description = context.getString(R.string.notif_channel_desc)
             }
             manager.createNotificationChannel(channel)
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(titulo)
             .setContentText(mensaje)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

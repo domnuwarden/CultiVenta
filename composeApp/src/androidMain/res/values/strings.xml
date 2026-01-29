@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">CultiVenta</string>
+    <string name="notif_channel_name">Alertas de Cultivo</string>
+    <string name="notif_channel_desc">Notificaciones de crecimiento de plantas</string>
+    <string name="notif_cosecha_lista">¡Tu cosecha está lista!</string>
+    <string name="notif_cosecha_desc">Entra a recolectar tus productos.</string>
 </resources>

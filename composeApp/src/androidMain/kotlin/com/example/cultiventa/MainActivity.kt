@@ -23,6 +23,7 @@ object AppContext {
 
 class MainActivity : ComponentActivity() {
     private var onLoginSuccessAction: (() -> Unit)? = null
+    private var onLoginFinishedAction: (() -> Unit)? = null
 
     private val googleSignInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
                 val credential = GoogleAuthProvider.getCredential(idToken, null)
                 FirebaseAuth.getInstance().signInWithCredential(credential)
                     .addOnCompleteListener(this) { taskAuth ->
+                        onLoginFinishedAction?.invoke()
                         if (taskAuth.isSuccessful) {
                             Log.d("GoogleLogin", "Usuario registrado en Firebase")
                             onLoginSuccessAction?.invoke()
@@ -43,9 +45,12 @@ class MainActivity : ComponentActivity() {
                             Log.e("GoogleLogin", "Error Firebase: ", taskAuth.exception)
                         }
                     }
+            } else {
+                onLoginFinishedAction?.invoke()
             }
         } catch (e: ApiException) {
             Log.e("GoogleLogin", "Error de Google: ${e.statusCode} - ${e.message}")
+            onLoginFinishedAction?.invoke()
         }
     }
 
@@ -62,8 +67,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             App(
-                onGoogleSignIn = { onSuccess ->
+                onGoogleSignIn = { onSuccess, onFinished ->
                     onLoginSuccessAction = onSuccess
+                    onLoginFinishedAction = onFinished
                     launchGoogleSignIn()
                 }
             )
@@ -79,14 +85,12 @@ class MainActivity : ComponentActivity() {
 
         val googleSignInClient = GoogleSignIn.getClient(this, gso)
         googleSignInClient.signOut().addOnCompleteListener {
-            googleSignInClient.revokeAccess().addOnCompleteListener {
+            try {
                 val intent = googleSignInClient.signInIntent
-                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                try {
-                    googleSignInLauncher.launch(intent)
-                } catch (e: Exception) {
-                    Log.e("GoogleLogin", "No se pudo lanzar el selector: ${e.message}")
-                }
+                googleSignInLauncher.launch(intent)
+            } catch (e: Exception) {
+                Log.e("GoogleLogin", "No se pudo lanzar el intent")
+                onLoginFinishedAction?.invoke()
             }
         }
     }
