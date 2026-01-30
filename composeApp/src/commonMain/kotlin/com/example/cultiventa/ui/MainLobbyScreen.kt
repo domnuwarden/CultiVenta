@@ -15,7 +15,7 @@ import com.example.cultiventa.cancelarNotificacionesPlanta
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.storage.storage
-import dev.gitlive.firebase.firestore.firestore // Asegúrate de tener este import
+import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.launch
 
 object MainLobbyScreen : Screen {

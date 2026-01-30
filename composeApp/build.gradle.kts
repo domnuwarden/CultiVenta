@@ -52,6 +52,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.filekit.compose)
+            implementation("androidx.core:core-splashscreen:1.0.1")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
